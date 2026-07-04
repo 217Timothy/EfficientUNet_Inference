@@ -1,6 +1,9 @@
+.vscode
 .venv/
 __pycache__/
 *.pyc
+.DS_Store
+**/.DS_Store
 
 models/*
 !models/.gitkeep
@@ -18,4 +21,6 @@ images/output/*
 *.log
 .env
 
-mentor_convert_code.py
+mentor_convert_code.py.DS_Store
+**/.DS_Store
+.vscode/
