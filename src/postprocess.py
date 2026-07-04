@@ -14,16 +14,17 @@ from src.preprocess import LetterboxMeta
 
 
 def sigmoid(logits: np.ndarray) -> np.ndarray:
-    """
-    Apply the sigmoid function to the input logits.
+    logits = np.asarray(logits, dtype=np.float32)
+    output = np.empty_like(logits, dtype=np.float32)
 
-    Args:
-        logits (np.ndarray): The input logits.
+    positive = logits >= 0
 
-    Returns:
-        np.ndarray: The output probabilities after applying the sigmoid function.
-    """
-    return 1 / (1 + np.exp(-logits))
+    output[positive] = 1.0 / (1.0 + np.exp(-logits[positive]))
+
+    exp_values = np.exp(logits[~positive])
+    output[~positive] = exp_values / (1.0 + exp_values)
+
+    return output
 
 
 def softmax(logits: np.ndarray, axis: int = 0) -> np.ndarray:

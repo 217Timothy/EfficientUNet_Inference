@@ -57,7 +57,7 @@ class ONNXBackend:
             [self.output_name],
             {self.input_name: input_tensor.astype(np.float32)},
         )
-        return outputs[0]
+        return outputs[0] # type: ignore
 
 
 class TFLiteBackend:
@@ -66,8 +66,8 @@ class TFLiteBackend:
             import tflite_runtime.interpreter as tflite # type: ignore
         except ImportError:
             import tensorflow.lite as tflite
-
-        self.interpreter = tflite.Interpreter(model_path=str(model_path))
+        
+        self.interpreter = tflite.Interpreter(model_path=str(model_path)) # type: ignore
         self.interpreter.allocate_tensors()
 
         self.input_details = self.interpreter.get_input_details()
@@ -83,14 +83,29 @@ class TFLiteBackend:
         input_index = self.input_details[0]["index"]
         output_index = self.output_details[0]["index"]
         input_dtype = self.input_details[0]["dtype"]
+        expected_shape = self.input_details[0]["shape"]
+
+        model_input = input_tensor
+
+        if (
+            model_input.ndim == 4
+            and len(expected_shape) == 4
+            and model_input.shape[1] == expected_shape[3]
+        ):
+            model_input = np.transpose(model_input, (0, 2, 3, 1))
 
         self.interpreter.set_tensor(
             input_index,
-            input_tensor.astype(input_dtype),
+            model_input.astype(input_dtype),
         )
         self.interpreter.invoke()
-        
-        return self.interpreter.get_tensor(output_index)
+
+        output = self.interpreter.get_tensor(output_index)
+
+        if output.ndim == 4 and output.shape[-1] < 32:
+            output = np.transpose(output, (0, 3, 1, 2))
+
+        return output
 
 
 def create_backend(

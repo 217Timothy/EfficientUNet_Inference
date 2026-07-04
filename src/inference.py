@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument("--width", type=int, default=DEFAULT_INPUT_SIZE[1])
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD)
     parser.add_argument("--alpha", type=float, default=DEFAULT_OVERLAY_ALPHA)
-    parser.add_argument("--task", default="binary", choices=["binary", "multiclass"])
+    parser.add_argument("--task", default="segmentation", choices=["segmentation", "multiclass"])
     return parser.parse_args()
 
 
@@ -70,8 +70,8 @@ def validate_output_path(output_path: str | Path) -> Path:
 def build_output_paths(output_dir: Path, image_path: str | Path) -> tuple[Path, Path]:
     image_stem = Path(image_path).stem
     
-    mask_path = output_dir/f"{image_stem}{MASK_FILENAME_SUFFIX}"
-    overlay_path = output_dir/f"{image_stem}{OVERLAY_FILENAME_SUFFIX}"
+    mask_path = output_dir/"mask"/f"{image_stem}{MASK_FILENAME_SUFFIX}"
+    overlay_path = output_dir/"overlay"/f"{image_stem}{OVERLAY_FILENAME_SUFFIX}"
     
     return mask_path, overlay_path
 
@@ -79,7 +79,7 @@ def build_output_paths(output_dir: Path, image_path: str | Path) -> tuple[Path, 
 def run_inference(args) -> tuple[Path, Path]:
     logger = get_logger("EfficientUNet")
     
-    model_path = validate_model_path(args.model_path, args.backend)
+    model_path = validate_model_path(args.model, args.backend)
     output_dir = validate_output_path(args.output)
     input_size = (args.height, args.width)
     
